@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.6</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>micro-crm</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>micro-crm</name>
+    <description>Demo project for Spring Boot</description>
+
+    <properties>
+        <java.version>11</java.version>
+        <spring-cloud.version>2020.0.4</spring-cloud.version>
+        <registryUsername>TODO_REGISTRY_USERNAME</registryUsername>
+        <registryPassword>TODO_REGISTRY_PASSWORD</registryPassword>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>2.2.0</version>
+                <configuration>
+                    <from>
+                        <image>adoptopenjdk/openjdk11-openj9:alpine-jre</image>
+                    </from>
+                    <to>
+                        <image>jirkapinkas/micro-crm</image>
+                    </to>
+                    <container>
+                        <jvmFlags>
+                            <jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
+                            <jvmFlag>-Duser.timezone=Europe/Prague</jvmFlag>
+                            <jvmFlag>-Xtune:virtualized</jvmFlag>
+                        </jvmFlags>
+                        <args>
+                            <arg>--spring.profiles.active=prod</arg>
+                        </args>
+                    </container>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <image>
+                        <!-- umisteni image v registry (nyni se pouziva vychozi: Docker Hub) -->
+                        <name>jirkapinkas/micro-mailing</name>
+                        <publish>true</publish>
+                        <buildpacks>
+                            <!-- Podporovane runtime:
+                                 https://github.com/orgs/paketo-buildpacks/repositories?q=jre&type=&language=&sort=
+                            -->
+                            <buildpack>gcr.io/paketo-buildpacks/eclipse-openj9:latest</buildpack>
+                            <buildpack>paketo-buildpacks/java</buildpack>
+                        </buildpacks>
+                    </image>
+                    <docker>
+                        <publishRegistry>
+                            <username>${registryUsername}</username>
+                            <password>${registryPassword}</password>
+                        </publishRegistry>
+                    </docker>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

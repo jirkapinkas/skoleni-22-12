@@ -1,0 +1,35 @@
+services:
+  - docker:dind
+
+# https://about.gitlab.com/blog/2016/07/29/the-basics-of-gitlab-ci/
+stages:
+  - build
+  - deploy
+  - check_sitemap
+# https://codeburst.io/gitlab-build-and-push-to-a-server-via-ssh-6d27ca1bf7b4
+# https://gitlab.com/gitlab-org/gitlab-foss/blob/master/lib/gitlab/ci/templates/Maven.gitlab-ci.yml
+image: adoptopenjdk/maven-openjdk11
+variables:
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+cache:
+  paths:
+    - .m2/repository
+before_script:
+  - apt update -qq && apt install -y -qq sshpass
+#build:
+#  stage: build
+#  script:
+#    - mvn install -B
+deploy:
+  stage: deploy
+  #  when: manual
+  script:
+    - mvn clean compile com.google.cloud.tools:jib-maven-plugin:2.2.0:build -B -Djib.to.auth.username=jirkapinkas -Djib.to.auth.password=2777aca3-a44a-4d8a-83b7-3ee92d730768
+    - sshpass -V
+#    - export SSHPASS=$USER_PASS
+    - export SSHPASS=2uEXR2XD
+    - sshpass -e ssh -o stricthostkeychecking=no -T -p 22 -t root@46.28.111.211 "kubectl rollout restart deployment/crm-deployment"
